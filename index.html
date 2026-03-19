@@ -33,17 +33,61 @@ body{font-family:'Nunito',sans-serif;background:#1a3a2a;color:var(--text-dark);m
 /* NAV */
 #app-screen{display:none}
 .app-nav{background:rgba(26,58,42,.97);padding:0 20px;display:flex;align-items:center;height:var(--nav-h);position:fixed;top:0;left:0;right:0;z-index:200;border-bottom:1px solid rgba(255,255,255,.08);gap:8px}
-.nav-brand{font-family:'Lora',serif;color:#fff;font-size:17px;font-weight:600;margin-right:16px;white-space:nowrap}
-.nav-links{display:flex;gap:3px;flex:1}
-.nav-link{padding:6px 13px;border-radius:8px;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;border:1px solid transparent;white-space:nowrap}
-.nav-link:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.08)}
-.nav-link.active{color:#fff;background:rgba(106,170,69,.25);border-color:rgba(106,170,69,.4)}
-.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.nav-email{color:rgba(255,255,255,.6);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Brand — now a dropdown trigger */
+.nav-brand{
+  font-family:'Lora',serif;color:#fff;font-size:17px;font-weight:600;
+  white-space:nowrap;position:relative;cursor:pointer;
+  display:flex;align-items:center;gap:6px;padding:6px 10px;
+  border-radius:10px;transition:background .2s;user-select:none;flex-shrink:0;
+}
+.nav-brand:hover{background:rgba(255,255,255,.1)}
+.nav-brand-caret{font-size:10px;opacity:.7;transition:transform .25s;display:inline-block}
+.nav-brand.open .nav-brand-caret{transform:rotate(180deg)}
+
+/* Dropdown panel */
+.nav-dropdown{
+  display:none;position:absolute;top:calc(100% + 8px);left:0;
+  background:rgba(22,50,36,.98);border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;padding:8px;min-width:220px;
+  box-shadow:0 16px 48px rgba(0,0,0,.55);z-index:300;
+  flex-direction:column;gap:2px;
+}
+html[dir=rtl] .nav-dropdown{left:auto;right:0;}
+.nav-brand.open .nav-dropdown{display:flex}
+
+.nav-dd-link{
+  padding:9px 14px;border-radius:9px;font-size:13px;font-weight:600;
+  color:rgba(255,255,255,.75);cursor:pointer;transition:all .15s;
+  white-space:nowrap;display:flex;align-items:center;gap:8px;
+}
+.nav-dd-link:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav-dd-link.active{color:#fff;background:rgba(106,170,69,.25)}
+.nav-dd-divider{height:1px;background:rgba(255,255,255,.1);margin:5px 4px}
+
+/* Language select inside dropdown */
+.nav-dd-lang{
+  padding:8px 14px;display:flex;align-items:center;gap:10px;
+}
+.nav-dd-lang-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.7px}
 .lang-select{padding:4px 8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:#fff;font-size:12px;font-family:'Nunito',sans-serif;cursor:pointer;outline:none}
 .lang-select option{background:#2a4a30;color:#fff}
-.btn-logout{padding:4px 11px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);border-radius:7px;font-size:12px;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
-.btn-logout:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* Logout inside dropdown */
+.nav-dd-logout{
+  padding:9px 14px;border-radius:9px;font-size:13px;font-weight:600;
+  color:rgba(255,160,100,.8);cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:8px;
+}
+.nav-dd-logout:hover{color:#ffb07a;background:rgba(255,140,60,.12)}
+
+/* Right side of nav: only email remains visible */
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
+.nav-email{color:rgba(255,255,255,.55);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Hide old standalone nav-links, lang-select, logout — they live in dropdown now */
+.nav-links{display:none}
+.btn-logout{display:none}
 
 /* PAGES */
 .page{display:none}
@@ -320,21 +364,40 @@ html[dir=rtl] #journal-text,html[dir=rtl] .thought-text{direction:rtl;text-align
 
 <!-- APP -->
 <div id="app-screen">
-  <nav class="app-nav">
-    <div class="nav-brand">🍃 <span data-i18n="appName">Mindful Stream</span></div>
-    <div class="nav-links">
-      <div class="nav-link" onclick="showPage('welcome')" data-i18n="navHome">Home</div>
-      <div class="nav-link" onclick="showPage('stream')" data-i18n="navStream">Thoughts on a Stream</div>
-      <div class="nav-link" onclick="showPage('journal')" data-i18n="navJournal">My Journal</div>
-      <div class="nav-link" onclick="showPage('breathing')" data-i18n="navBreathing">Breathing</div>
+  <nav class="app-nav" id="app-nav">
+    <!-- Brand acts as dropdown trigger -->
+    <div class="nav-brand" id="nav-brand-btn" onclick="toggleNavDropdown(event)">
+      🍃 <span data-i18n="appName">Mindful Stream</span>
+      <span class="nav-brand-caret">▼</span>
+      <!-- Dropdown menu -->
+      <div class="nav-dropdown" id="nav-dropdown" onclick="event.stopPropagation()">
+        <div class="nav-dd-link" id="dd-home" onclick="navDropdownGo('welcome')" data-i18n="navHome">Home</div>
+        <div class="nav-dd-link" id="dd-stream" onclick="navDropdownGo('stream')" data-i18n="navStream">Thoughts on a Stream</div>
+        <div class="nav-dd-link" id="dd-journal" onclick="navDropdownGo('journal')" data-i18n="navJournal">My Journal</div>
+        <div class="nav-dd-link" id="dd-breathing" onclick="navDropdownGo('breathing')" data-i18n="navBreathing">Mindful Breathing</div>
+        <div class="nav-dd-divider"></div>
+        <div class="nav-dd-lang">
+          <span class="nav-dd-lang-label" data-i18n="languageLabel">Language</span>
+          <select class="lang-select" onchange="setLang(this.value)" id="nav-lang-select">
+            <option value="en">🌐 English</option>
+            <option value="he">🌐 עברית</option>
+          </select>
+        </div>
+        <div class="nav-dd-divider"></div>
+        <div class="nav-dd-logout" onclick="logout()">
+          <span>↩</span><span data-i18n="signOut">Sign out</span>
+        </div>
+      </div>
     </div>
+
+    <!-- Right side: only username -->
     <div class="nav-right">
-      <select class="lang-select" onchange="setLang(this.value)">
-        <option value="en">🌐 English</option>
-        <option value="he">🌐 עברית</option>
-      </select>
+																 
+												
+												   
+			   
       <span class="nav-email" id="nav-email-display"></span>
-      <button class="btn-logout" onclick="logout()" data-i18n="signOut">Sign out</button>
+																						 
     </div>
   </nav>
 
@@ -494,12 +557,20 @@ html[dir=rtl] #journal-text,html[dir=rtl] .thought-text{direction:rtl;text-align
 <script>
 // ===== I18N =====
 const STRINGS={
-  en:{appName:'Mindful Stream',tagline:'A space for thoughts to flow',signIn:'Sign In',createAccount:'Create Account',email:'Email',emailPlaceholder:'you@example.com',password:'Password',confirmPassword:'Confirm Password',signOut:'Sign out',navHome:'Home',navStream:'Thoughts on a Stream',navJournal:'My Journal',welcomeBack:'Welcome back,',welcomeSub:"This is your calm corner. Choose where you'd like to go.",streamDesc:'Place your thoughts on leaves and watch them flow downstream',journalDesc:'Write freely and gently question your thoughts with four reflections',thoughtPlaceholder:'A thought...',placeOnLeaf:'Place on leaf',saveThought:'Save thought',addImage:'+ Image',streamSpeed:'Stream Speed',leafCount:'Leaf Count',stpTitle:'Saved Thoughts',stpHint:'Select up to 3 to float on leaves',stpEmpty:'No saved thoughts yet — type one below and save it',compassionLabel:'💛 Compassion reminders',journalSubtitle:'Write freely. Then choose sentences and let them be gently questioned.',step1Badge:'Step 1',writeFreely:'Write freely',journalPlaceholder:"Write whatever is on your mind. Don't edit. Don't judge. Just let it flow...",chooseMultiple:'Choose one or more sentences to reflect on:',extractBtn:'Extract sentences for reflection →',step2Badge:'Step 2',reflectTitle:'Reflect on your thoughts',saveReflection:'Save this reflection',savedTitle:'Saved Reflections',q1:'Is this thought true?',q2:'Is it really true?',q3:'How do I know that it is really true?',q4:'Who would I be without this thought?',q1p:'Answer honestly...',q2p:'Can you be absolutely certain?',q3p:'What evidence do you have? How does it make you feel?',q4p:'Imagine yourself without this thought. What do you see?',emptyState:'Your reflections will appear here after you save them.',fillFields:'Please fill in all fields.',validEmail:'Please enter a valid email.',passwordMatch:'Passwords do not match.',passwordLen:'Password must be at least 6 characters.',emailExists:'An account with this email already exists.',noAccount:'No account found with this email.',wrongPw:'Incorrect password.',done:'Done',created:'Account created! Signing you in...',navBreathing:'Mindful Breathing',breathDesc:'Breathe with a gentle mandala. Set your own rhythm and find calm.',inBreath:'In-breath',pauseBreath:'Pause',outBreath:'Out-breath',seconds:'sec',startBreathing:'▶ Start',stopBreathing:'■ Stop',stageIn:'IN',stageHold:'HOLD',stageOut:'OUT',bipLabel:'Choose image',colorLabel:'Color:'},
-  he:{appName:'זרם מודע',tagline:'מרחב שבו מחשבות זורמות',signIn:'כניסה',createAccount:'יצירת חשבון',email:'אימייל',emailPlaceholder:'you@example.com',password:'סיסמה',confirmPassword:'אימות סיסמה',signOut:'יציאה',navHome:'בית',navStream:'מחשבות על הזרם',navJournal:'היומן שלי',welcomeBack:'ברוך שובך,',welcomeSub:'זהו פינת השקט שלך. בחר לאן תרצה ללכת.',streamDesc:'הנח מחשבותיך על עלים וצפה בהם זורמים במורד הנחל',journalDesc:'כתוב בחופשיות ובחן בעדינות את מחשבותיך עם ארבע שאלות',thoughtPlaceholder:'מחשבה...',placeOnLeaf:'הנח על עלה',saveThought:'שמור מחשבה',addImage:'+ תמונה',streamSpeed:'מהירות הזרם',leafCount:'כמות עלים',stpTitle:'מחשבות שמורות',stpHint:'בחר עד 3 להצגה על עלים',stpEmpty:'אין עדיין מחשבות שמורות — הקלד מחשבה למטה ושמור אותה',compassionLabel:'💛 משפטי תזכורת חומלים',journalSubtitle:'כתוב בחופשיות. לאחר מכן בחר משפטים ובחן אותם בעדינות.',step1Badge:'שלב 1',writeFreely:'כתוב בחופשיות',journalPlaceholder:'כתוב כל מה שעולה בדעתך. אל תערוך. אל תשפוט. פשוט תן לזה לזרום...',chooseMultiple:'בחר משפט אחד או יותר לעיון:',extractBtn:'חלץ משפטים לעיון ←',step2Badge:'שלב 2',reflectTitle:'התבונן במחשבותיך',saveReflection:'שמור עיון זה',savedTitle:'עיונים שמורים',q1:'האם המחשבה הזו אמיתית?',q2:'האם היא באמת אמיתית?',q3:'כיצד אני יודע שהיא באמת אמיתית?',q4:'מי הייתי ללא המחשבה הזו?',q1p:'ענה בכנות...',q2p:'האם אתה יכול להיות בטוח לחלוטין?',q3p:'איזו עדות יש לך? כיצד היא גורמת לך להרגיש?',q4p:'דמיין את עצמך ללא המחשבה הזו. מה אתה רואה?',emptyState:'העיונים שלך יופיעו כאן לאחר שתשמור אותם.',fillFields:'אנא מלא את כל השדות.',validEmail:'אנא הזן אימייל תקין.',passwordMatch:'הסיסמאות אינן תואמות.',passwordLen:'הסיסמה חייבת להכיל לפחות 6 תווים.',emailExists:'חשבון עם אימייל זה כבר קיים.',noAccount:'לא נמצא חשבון עם אימייל זה.',wrongPw:'סיסמה שגויה.',done:'סיום',created:'החשבון נוצר! מכניס אותך...',navBreathing:'נשימה מודעת',breathDesc:'נשום עם מנדלה עדינה. הגדר את הקצב שלך ומצא שלווה.',inBreath:'שאיפה',pauseBreath:'עצירה',outBreath:'נשיפה',seconds:'שניות',startBreathing:'▶ התחל',stopBreathing:'■ עצור',stageIn:'שאיפה',stageHold:'להחזיק',stageOut:'נשיפה',bipLabel:'בחר תמונה',colorLabel:'צבע:'}
+  en:{appName:'Mindful Stream',tagline:'A space for thoughts to flow',signIn:'Sign In',createAccount:'Create Account',email:'Email',emailPlaceholder:'you@example.com',password:'Password',confirmPassword:'Confirm Password',signOut:'Sign out',navHome:'Home',navStream:'Thoughts on a Stream',navJournal:'My Journal',welcomeBack:'Welcome back,',welcomeSub:"This is your calm corner. Choose where you'd like to go.",streamDesc:'Place your thoughts on leaves and watch them flow downstream',journalDesc:'Write freely and gently question your thoughts with four reflections',thoughtPlaceholder:'A thought...',placeOnLeaf:'Place on leaf',saveThought:'Save thought',addImage:'+ Image',streamSpeed:'Stream Speed',leafCount:'Leaf Count',stpTitle:'Saved Thoughts',stpHint:'Select up to 3 to float on leaves',stpEmpty:'No saved thoughts yet — type one below and save it',compassionLabel:'💛 Compassion reminders',journalSubtitle:'Write freely. Then choose sentences and let them be gently questioned.',step1Badge:'Step 1',writeFreely:'Write freely',journalPlaceholder:"Write whatever is on your mind. Don't edit. Don't judge. Just let it flow...",chooseMultiple:'Choose one or more sentences to reflect on:',extractBtn:'Extract sentences for reflection →',step2Badge:'Step 2',reflectTitle:'Reflect on your thoughts',saveReflection:'Save this reflection',savedTitle:'Saved Reflections',q1:'Is this thought true?',q2:'Is it really true?',q3:'How do I know that it is really true?',q4:'Who would I be without this thought?',q1p:'Answer honestly...',q2p:'Can you be absolutely certain?',q3p:'What evidence do you have? How does it make you feel?',q4p:'Imagine yourself without this thought. What do you see?',emptyState:'Your reflections will appear here after you save them.',fillFields:'Please fill in all fields.',validEmail:'Please enter a valid email.',passwordMatch:'Passwords do not match.',passwordLen:'Password must be at least 6 characters.',emailExists:'An account with this email already exists.',noAccount:'No account found with this email.',wrongPw:'Incorrect password.',done:'Done',languageLabel:'Language',created:'Account created! Signing you in...',navBreathing:'Mindful Breathing',breathDesc:'Breathe with a gentle mandala. Set your own rhythm and find calm.',inBreath:'In-breath',pauseBreath:'Pause',outBreath:'Out-breath',seconds:'sec',startBreathing:'▶ Start',stopBreathing:'■ Stop',stageIn:'IN',stageHold:'HOLD',stageOut:'OUT',bipLabel:'Choose image',colorLabel:'Color:'},
+  he:{appName:'תודעה מודעת',tagline:'מרחב שבו מחשבות זורמות',signIn:'כניסה',createAccount:'יצירת חשבון',email:'אימייל',emailPlaceholder:'you@example.com',password:'סיסמה',confirmPassword:'אימות סיסמה',signOut:'יציאה',navHome:'בית',navStream:'מחשבות על הזרם',navJournal:'היומן שלי',welcomeBack:'ברוך שובך,',welcomeSub:'זהו פינת השקט שלך. בחר לאן תרצה ללכת.',streamDesc:'הנח מחשבותיך על עלים וצפה בהם זורמים במורד הנחל',journalDesc:'כתוב בחופשיות ובחן בעדינות את מחשבותיך עם ארבע שאלות',thoughtPlaceholder:'מחשבה...',placeOnLeaf:'הנח על עלה',saveThought:'שמור מחשבה',addImage:'+ תמונה',streamSpeed:'מהירות הזרם',leafCount:'כמות עלים',stpTitle:'מחשבות שמורות',stpHint:'בחר עד 3 להצגה על עלים',stpEmpty:'אין עדיין מחשבות שמורות — הקלד מחשבה למטה ושמור אותה',compassionLabel:'💛 משפטי תזכורת חומלים',journalSubtitle:'כתוב בחופשיות. לאחר מכן בחר משפטים ובחן אותם בעדינות.',step1Badge:'שלב 1',writeFreely:'כתוב בחופשיות',journalPlaceholder:'כתוב כל מה שעולה בדעתך. אל תערוך. אל תשפוט. פשוט תן לזה לזרום...',chooseMultiple:'בחר משפט אחד או יותר לעיון:',extractBtn:'חלץ משפטים לעיון ←',step2Badge:'שלב 2',reflectTitle:'התבונן במחשבותיך',saveReflection:'שמור עיון זה',savedTitle:'עיונים שמורים',q1:'האם המחשבה הזו אמיתית?',q2:'האם היא באמת אמיתית?',q3:'כיצד אני יודע שהיא באמת אמיתית?',q4:'מי הייתי ללא המחשבה הזו?',q1p:'ענה בכנות...',q2p:'האם אתה יכול להיות בטוח לחלוטין?',q3p:'איזו עדות יש לך? כיצד היא גורמת לך להרגיש?',q4p:'דמיין את עצמך ללא המחשבה הזו. מה אתה רואה?',emptyState:'העיונים שלך יופיעו כאן לאחר שתשמור אותם.',fillFields:'אנא מלא את כל השדות.',validEmail:'אנא הזן אימייל תקין.',passwordMatch:'הסיסמאות אינן תואמות.',passwordLen:'הסיסמה חייבת להכיל לפחות 6 תווים.',emailExists:'חשבון עם אימייל זה כבר קיים.',noAccount:'לא נמצא חשבון עם אימייל זה.',wrongPw:'סיסמה שגויה.',done:'סיום',languageLabel:'שפה',created:'החשבון נוצר! מכניס אותך...',navBreathing:'נשימה מודעת',breathDesc:'נשום עם מנדלה עדינה. הגדר את הקצב שלך ומצא שלווה.',inBreath:'שאיפה',pauseBreath:'עצירה',outBreath:'נשיפה',seconds:'שניות',startBreathing:'▶ התחל',stopBreathing:'■ עצור',stageIn:'שאיפה',stageHold:'להחזיק',stageOut:'נשיפה',bipLabel:'בחר תמונה',colorLabel:'צבע:'}
 };
 let lang='en';
 function tr(k){return(STRINGS[lang]||STRINGS.en)[k]||k;}
-function setLang(l){lang=l;const h=document.documentElement;h.setAttribute('lang',l);h.setAttribute('dir',l==='he'?'rtl':'ltr');applyTranslations();}
+function setLang(l){
+  lang=l;
+  const h=document.documentElement;
+  h.setAttribute('lang',l);
+  h.setAttribute('dir',l==='he'?'rtl':'ltr');
+  // Keep both selectors in sync (only one exists now but keep safe)
+  document.querySelectorAll('.lang-select').forEach(s=>s.value=l);
+  applyTranslations();
+}
 function applyTranslations(){
   document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=tr(el.getAttribute('data-i18n')));
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>el.placeholder=tr(el.getAttribute('data-i18n-placeholder')));
@@ -588,10 +659,30 @@ function showPage(name){
     const el=document.getElementById(n+'-page');
     el.classList.toggle('active',n===name);
   });
-  document.querySelectorAll('.nav-link').forEach((l,i)=>l.classList.toggle('active',['welcome','stream','journal','breathing'][i]===name));
+  // Update dropdown active links
+  ['home','stream','journal','breathing'].forEach((id,i)=>{
+    const page=['welcome','stream','journal','breathing'][i];
+    const el=document.getElementById('dd-'+id);
+    if(el)el.classList.toggle('active',page===name);
+  });
   if(name==='stream'){requestAnimationFrame(()=>requestAnimationFrame(()=>sizeAndDrawRiver()));}
   if(name!=='breathing'&&breathingActive){stopBreathing();}
 }
+
+function toggleNavDropdown(e){
+  e.stopPropagation();
+  const brand=document.getElementById('nav-brand-btn');
+  brand.classList.toggle('open');
+}
+function navDropdownGo(page){
+  document.getElementById('nav-brand-btn').classList.remove('open');
+  showPage(page);
+}
+// Close dropdown when clicking outside
+document.addEventListener('click',function(){
+  const brand=document.getElementById('nav-brand-btn');
+  if(brand)brand.classList.remove('open');
+});
 
 // ===== SAVED THOUGHTS =====
 // Each thought: {id, text, selected}
