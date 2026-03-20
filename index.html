@@ -203,6 +203,11 @@ html[dir=rtl] .nav-dropdown{left:auto;right:0;}
 .question-answer:focus{border-color:var(--accent)}
 .btn-save-journal{padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'Nunito',sans-serif;cursor:pointer;transition:background .2s;margin-top:6px}
 .btn-save-journal:hover{background:#3d6230}
+.defusion-btn{margin-top:8px;padding:6px 12px;background:transparent; border:1.5px solid var(--gold);color:var(--gold); border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
+.defusion-btn:hover{background:var(--gold);color:#fff}
+.defusion-output{  margin-top:10px; font-size:13px; line-height:1.6; opacity:0; transform:translateY(6px); transition:all .4s ease;}
+.defusion-output.show{opacity:1; transform:translateY(0);}
+.defusion-txt{font-size:20px; text-align:center;}
 .saved-entries{margin-top:28px}
 .saved-entries-title{font-family:'Lora',serif;font-size:18px;color:var(--text-dark);margin-bottom:16px;font-weight:600}
 .saved-entry-card{background:#fff;border-radius:13px;padding:18px 22px;border:1px solid rgba(80,120,60,.1);margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
@@ -1037,17 +1042,104 @@ function extractSentences(){
   document.getElementById('sentence-picker').style.display='block';
 }
 function rebuildReflectionCards(){
-  const container=document.getElementById('reflections-list');container.innerHTML='';
-  const qs=[tr('q1'),tr('q2'),tr('q3'),tr('q4')];const ps=[tr('q1p'),tr('q2p'),tr('q3p'),tr('q4p')];
+  const container=document.getElementById('reflections-list');
+  container.innerHTML='';
+
+  const qs=[tr('q1'),tr('q2'),tr('q3'),tr('q4')];
+  const ps=[tr('q1p'),tr('q2p'),tr('q3p'),tr('q4p')];
+
   selectedSentences.forEach((s,si)=>{
-    const block=document.createElement('div');block.className='reflection-block';
-    let qHTML='';qs.forEach((q,qi)=>{qHTML+=`<div class="question-item"><div class="question-text"><span class="q-num">${qi+1}</span>${q}</div><textarea class="question-answer" id="q_${si}_${qi}" placeholder="${ps[qi]}"></textarea></div>`;});
-    block.innerHTML=`<div class="rb-thought">"${s}"</div>${qHTML}`;container.appendChild(block);
+    const block=document.createElement('div');
+    block.className='reflection-block';
+
+    let qHTML='';
+    qs.forEach((q,qi)=>{
+      qHTML+=`
+        <div class="question-item">
+          <div class="question-text">
+            <span class="q-num">${qi+1}</span>${q}
+          </div>
+          <textarea class="question-answer" id="q_${si}_${qi}" placeholder="${ps[qi]}"></textarea>
+        </div>
+      `;
+    });
+
+    // ✅ NEW DEFUSION SECTION
+   
+    const btnLabel = lang==='he' ? 'עוד קצת הפרדה' : 'Some more Defusion';
+
+	block.innerHTML=`
+	  <div class="rb-thought">${s}</div>
+	  ${qHTML}
+
+	  <select class="defusion-select">
+		<option value="orNot">${lang==='he'?'או לא':'or not'}</option>
+		<option value="havingThought">${lang==='he'?'יש בי מחשבה ש':'I am having the thought'}</option>
+		<option value="thanksMind">${lang==='he'?'תודה מיינד ששיתפת במחשבה':'Thanks mind for sharing the thought'}</option>
+		<option value="INotice">${lang==='he'?'אני שמ/ה לב שבמודעות שבי מופיעה המחשבה':'I notice that my awareness contains the thought'}</option>
+	  </select>
+
+	  <button class="defusion-btn">${btnLabel}</button>
+	  <div class="defusion-output"></div>
+	`;
+
+    // === LOGIC ===
+    const select = block.querySelector('.defusion-select');
+	const btn = block.querySelector('.defusion-btn');
+	const output = block.querySelector('.defusion-output');
+
+	btn.addEventListener('click',()=>{
+	  const userName=(currentUser||'').split('@')[0]||'';
+	  const isHebrew=/[\u0590-\u05FF]/.test(s);
+	  const mode = select.value;
+
+	  let sentence1='';
+
+	  if(mode==='orNot'){
+		const suffix = isHebrew ? ' או לא.' : ', or not.';
+		sentence1 = `${s}<b>${suffix}</b>`;
+	  }
+
+	  if(mode==='havingThought'){
+		sentence1 = isHebrew
+		  ? `<b>יש בי מחשבה ש</b> ${s}`
+		  : `<b>I am having the thought</b> ${s}`;
+	  }
+
+	  if(mode==='thanksMind'){
+		sentence1 = isHebrew
+		  ? `<b>תודה מיינד ששיתפת במחשבה</b>, ${s}`
+		  : `<b>Thanks mind for sharing the thought</b>, ${s}`;
+	  }
+	  
+	  if(mode==='INotice'){
+		sentence1 = isHebrew
+		  ? `<b>אני שמ/ה לב שבמודעות שבי מופיעה המחשבה</b>, ${s}`
+		  : `<b>I notice that my awareness contains the thought</b>, ${s}`;
+	  }
+
+	//let sentence2 = isHebrew
+	//	? `<b>אני שמ/ה לב שבמודעות שבי מופיעה המחשבה</b>, ${s}`
+	//	: `<b>I notice that my awareness contains the thought</b>,${s}`;
+
+	 output.innerHTML = `
+		<div class="defusion-txt">${sentence1}</div>
+	  `;
+
+	  // animation trigger
+	  output.classList.remove('show');
+	  void output.offsetWidth;
+	  output.classList.add('show');
+	});
+
+    container.appendChild(block);
   });
 }
 function saveEntry(){
   if(!selectedSentences.length)return;
-  const reflections=selectedSentences.map((s,si)=>({thought:s,q1:document.getElementById('q_'+si+'_0')?.value.trim()||'',q2:document.getElementById('q_'+si+'_1')?.value.trim()||'',q3:document.getElementById('q_'+si+'_2')?.value.trim()||'',q4:document.getElementById('q_'+si+'_3')?.value.trim()||''}));
+  const defusionBlocks = document.querySelectorAll('.defusion-output');
+
+  const reflections=selectedSentences.map((s,si)=>({thought:s, q1:document.getElementById('q_'+si+'_0')?.value.trim()||'', q2:document.getElementById('q_'+si+'_1')?.value.trim()||'', q3:document.getElementById('q_'+si+'_2')?.value.trim()||'', q4:document.getElementById('q_'+si+'_3')?.value.trim()||'', defusion:defusionBlocks[si]?.innerText || ''}));
   const entry={id:Date.now(),date:new Date().toLocaleDateString(lang==='he'?'he-IL':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),text:document.getElementById('journal-text').value.trim(),reflections};
   journalEntries.unshift(entry);users[currentUser].entries=journalEntries;localStorage.setItem('ms_users',JSON.stringify(users));
   document.getElementById('journal-text').value='';document.getElementById('sentence-picker').style.display='none';document.getElementById('reflection-card').style.display='none';selectedSentences=[];renderSavedEntries();
@@ -1075,15 +1167,20 @@ function renderSavedEntries(){
   const el=document.getElementById('saved-entries-list');
   const delEntryLabel=lang==='he'?'מחק רשומה':'Delete entry';
   const delReflLabel=lang==='he'?'מחק':'Delete';
+  const defusionStr=lang==='he'?"הפרדה:":"Defusion:";
   if(!journalEntries.length){el.innerHTML=`<div class="empty-state">${tr('emptyState')}</div>`;return;}
   const qs=[tr('q1'),tr('q2'),tr('q3'),tr('q4')];
   el.innerHTML=`<div class="saved-entries-title">${tr('savedTitle')}</div>`+journalEntries.map(e=>{
     const reflBlocks=(e.reflections||[]).map((r,ri)=>{
-      const qaHTML=qs.map((q,i)=>{const a=r['q'+(i+1)];return a?`<div class="entry-q">${i+1}. ${q}</div><div class="entry-a">${a}</div>`:''}).join('');
-      return`<div class="entry-reflection-block">
-        <button class="btn-delete-reflection" onclick="deleteReflection(${e.id},${ri})">${delReflLabel}</button>
-        <div class="entry-thought">"${r.thought}"</div>${qaHTML}
-      </div>`;
+    const qaHTML=qs.map((q,i)=>{const a=r['q'+(i+1)];return a?`<div class="entry-q">${i+1}. ${q}</div><div class="entry-a">${a}</div>`:''}).join('');
+    const defusionHTML = r.defusion ? `<div class="entry-defusion"><b>${defusionStr}</b><br>${r.defusion}</div>` : '';
+
+	return`<div class="entry-reflection-block">
+	  <button class="btn-delete-reflection" onclick="deleteReflection(${e.id},${ri})">${delReflLabel}</button>
+	  <div class="entry-thought">"${r.thought}"</div>
+	  ${qaHTML}
+	  ${defusionHTML}
+	</div>`;
     }).join('');
     let legacyHTML='';
     if(!e.reflections&&e.thought){
