@@ -134,6 +134,53 @@ html[dir=rtl] .nav-dropdown{left:auto;right:0;}
   display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;
   z-index:10;
 }
+
+/* FULL PAGE STREAM */
+#btn-fullpage {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 600;
+  padding: 10px 18px;
+  height: 42px;
+  background: rgba(0,0,0,.45);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 21px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  transition: background .2s;
+  display: none;
+}
+#btn-fullpage:hover {
+  background: rgba(0,0,0,.65);
+}
+#stream-page.active #btn-fullpage {
+  display: flex;
+  align-items: center;
+}
+#stream-page.fullpage-mode {
+  top: 0 !important;
+  z-index: 500;
+}
+#stream-page.fullpage-mode .stream-controls,
+#stream-page.fullpage-mode .saved-thoughts-panel {
+  display: none !important;
+}
+#stream-page.fullpage-mode #btn-fullpage {
+  bottom: auto;
+  top: 12px;
+  right: 16px;
+}
+
+#stream-page.fullpage-mode #btn-fullpage:hover {
+  background: rgba(0,0,0,.65);
+}
+
 .ctrl-group{display:flex;flex-direction:column;gap:4px;align-items:center;min-width:95px}
 .ctrl-label{font-size:10px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.7px}
 .ctrl-group input[type=range]{width:95px;accent-color:var(--accent)}
@@ -147,23 +194,127 @@ html[dir=rtl] .nav-dropdown{left:auto;right:0;}
 .btn-img-thought:hover{border-color:var(--accent);background:#f0f8f0}
 #img-upload{display:none}
 
-/* SAVED THOUGHTS PANEL */
-.saved-thoughts-panel{
-  flex-shrink:0;background:rgba(255,255,255,.97);border-top:1px solid rgba(80,120,60,.15);
-  padding:8px 16px 10px;max-height:180px;overflow-y:auto;
+/* Saved Thoughts Dropdown Trigger */
+.stp-dropdown-wrap {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
-.stp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.stp-title{font-size:11px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.7px}
-.stp-hint{font-size:10px;color:#aaa}
-.stp-empty{font-size:12px;color:#bbb;font-style:italic;padding:4px 0}
-.stp-list{display:flex;flex-direction:column;gap:5px}
-.stp-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1.5px solid #dce8dc;border-radius:8px;background:#fafcfa;transition:all .2s}
-.stp-item.stp-selected{border-color:var(--accent);background:#eef7e8}
-.stp-item.stp-disabled{opacity:.45;pointer-events:none}
-.stp-cb{width:15px;height:15px;border-radius:3px;border:1.5px solid #bbb;flex-shrink:0;cursor:pointer;accent-color:var(--accent)}
-.stp-text{font-size:12px;font-family:'Lora',serif;font-style:italic;color:var(--text-dark);flex:1;line-height:1.4}
-.stp-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:0 2px;line-height:1;flex-shrink:0;transition:color .2s}
-.stp-del:hover{color:#e07b3a}
+
+.stp-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  height: 34px;
+  background: #fff;
+  color: var(--accent);
+  border: 1.5px solid #dce8dc;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+}
+.stp-toggle-btn:hover {
+  border-color: var(--accent);
+  background: #f0f8f0;
+}
+.stp-toggle-btn .stp-badge {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  min-width: 16px;
+  text-align: center;
+  display: none; /* shown only when count > 0 */
+}
+.stp-toggle-btn.has-selection .stp-badge {
+  display: inline-block;
+}
+.stp-caret {
+  font-size: 10px;
+  opacity: .6;
+  transition: transform .22s;
+  display: inline-block;
+}
+.stp-dropdown-wrap.open .stp-caret {
+  transform: rotate(180deg);
+}
+
+/* The dropdown panel */
+.saved-thoughts-panel {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: rgba(255,255,255,.98);
+  border: 1.5px solid #dce8dc;
+  border-radius: 13px;
+  padding: 10px 12px 12px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,.15);
+  z-index: 50;
+  flex-direction: column;
+  gap: 6px;
+}
+.stp-dropdown-wrap.open .saved-thoughts-panel {
+  display: flex;
+}
+
+/* RTL: open to the right instead of left */
+html[dir=rtl] .saved-thoughts-panel {
+  left: auto;
+  right: 0;
+}
+
+.stp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.stp-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+.stp-hint { font-size: 10px; color: #aaa; }
+.stp-empty { font-size: 12px; color: #bbb; font-style: italic; padding: 4px 0; }
+.stp-list { display: flex; flex-direction: column; gap: 5px; }
+.stp-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border: 1.5px solid #dce8dc;
+  border-radius: 8px; background: #fafcfa; transition: all .2s;
+}
+.stp-item.stp-selected { border-color: var(--accent); background: #eef7e8; }
+.stp-item.stp-disabled { opacity: .45; pointer-events: none; }
+.stp-cb {
+  width: 15px; height: 15px; border-radius: 3px;
+  border: 1.5px solid #bbb; flex-shrink: 0;
+  cursor: pointer; accent-color: var(--accent);
+}
+.stp-text {
+  font-size: 12px; font-family: 'Lora', serif;
+  font-style: italic; color: var(--text-dark);
+  flex: 1; line-height: 1.4;
+}
+.stp-del {
+  background: none; border: none; color: #ccc;
+  cursor: pointer; font-size: 14px; padding: 0 2px;
+  line-height: 1; flex-shrink: 0; transition: color .2s;
+}
+.stp-del:hover { color: #e07b3a; }
+
 /* compassion checkbox row */
 .compassion-row{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1.5px solid rgba(196,168,67,.4);border-radius:8px;background:rgba(196,168,67,.07);cursor:pointer;flex-shrink:0}
 .compassion-cb{width:15px;height:15px;border-radius:3px;border:1.5px solid #c4a843;flex-shrink:0;cursor:pointer;accent-color:var(--gold)}
@@ -444,14 +595,32 @@ html[dir=rtl] #journal-text,html[dir=rtl] .thought-text{direction:rtl;text-align
     <div id="river-canvas-container">
       <canvas id="river"></canvas>
     </div>
-    <!-- Saved thoughts list -->
-    <div class="saved-thoughts-panel" id="stp-panel">
-      <div class="stp-header">
-        <span class="stp-title" data-i18n="stpTitle">Saved Thoughts</span>
-        <span class="stp-hint" id="stp-hint-text" data-i18n="stpHint">Choose up to 3</span>
+	<button
+     id="btn-fullpage"
+     class="btn-fullpage-stream"
+     onclick="toggleFullPageStream()"
+     data-i18n="fullPage">
+     ⛶ Full Page
+   </button>
+    
+	<!-- Saved thoughts dropdown -->
+    <div class="stp-dropdown-wrap" id="stp-dropdown-wrap">
+      <button class="stp-toggle-btn" id="stp-toggle-btn" onclick="toggleStpDropdown(event)">
+        🍃 <span data-i18n="stpTitle">Saved Thoughts</span>
+        <span class="stp-badge" id="stp-badge">0</span>
+        <span class="stp-caret">▾</span>
+      </button>
+      <div class="saved-thoughts-panel" id="stp-panel">
+        <div class="stp-header">
+          <span class="stp-title" data-i18n="stpTitle">Saved Thoughts</span>
+          <span class="stp-hint" id="stp-hint-text" data-i18n="stpHint">Choose up to 3</span>
+        </div>
+        <div class="stp-list" id="stp-list">
+          <div class="stp-empty" data-i18n="stpEmpty">No saved thoughts yet — type one below and save it</div>
+        </div>
       </div>
-      <div class="stp-list" id="stp-list"><div class="stp-empty" data-i18n="stpEmpty">No saved thoughts yet — type one below and save it</div></div>
     </div>
+	
     <div class="stream-controls">
       <div class="thought-input-area">
         <textarea class="thought-text" id="thought-input" placeholder="A thought..." data-i18n-placeholder="thoughtPlaceholder"></textarea>
@@ -570,8 +739,8 @@ html[dir=rtl] #journal-text,html[dir=rtl] .thought-text{direction:rtl;text-align
 <script>
 // ===== I18N =====
 const STRINGS={
-  en:{appName:'Mindful Stream',tagline:'A space for thoughts to flow',signIn:'Sign In',createAccount:'Create Account',email:'Email',emailPlaceholder:'you@example.com',password:'Password',confirmPassword:'Confirm Password',signOut:'Sign out',navHome:'Home',navStream:'Thoughts on a Stream',navJournal:'My Journal',welcomeBack:'Welcome back,',welcomeSub:"This is your Observing corner. Choose where you'd like to go.",streamDesc:'Place your thoughts on leaves and watch them flow downstream',journalDesc:'Write freely and gently question your thoughts with four reflections',thoughtPlaceholder:'A thought...',placeOnLeaf:'Place on leaf',saveThought:'Save thought',addImage:'+ Image',streamSpeed:'Stream Speed',leafCount:'Leaf Count',stpTitle:'Saved Thoughts',stpHint:'Select up to 3 to float on leaves',stpEmpty:'No saved thoughts yet — type one below and save it',compassionLabel:'💛 Compassion reminders',journalSubtitle:'Write freely. Then choose sentences and let them be gently questioned.',step1Badge:'Step 1',writeFreely:'Write freely',journalPlaceholder:"Write whatever is on your mind. Don't edit. Don't judge. Just let it flow...",chooseMultiple:'Choose one or more sentences to reflect on:',extractBtn:'Extract sentences for reflection →',step2Badge:'Step 2',reflectTitle:'Reflect on your thoughts',saveReflection:'Save this reflection',savedTitle:'Saved Reflections',q1:'Is this thought true?',q2:'Is it really true?',q3:'How do I know that it is really true?',q4:'Who would I be without this thought?',q1p:'Answer honestly...',q2p:'Can you be absolutely certain?',q3p:'What evidence do you have? How does it make you feel?',q4p:'Imagine yourself without this thought. What do you see?',emptyState:'Your reflections will appear here after you save them.',fillFields:'Please fill in all fields.',validEmail:'Please enter a valid email.',passwordMatch:'Passwords do not match.',passwordLen:'Password must be at least 6 characters.',emailExists:'An account with this email already exists.',noAccount:'No account found with this email.',wrongPw:'Incorrect password.',done:'Done',languageLabel:'Language',created:'Account created! Signing you in...',navBreathing:'Mindful Breathing',breathDesc:'Breathe with a gentle mandala. Set your own rhythm and find calm.',inBreath:'In-breath',pauseBreath:'Pause',outBreath:'Out-breath',seconds:'sec',startBreathing:'▶ Start',stopBreathing:'■ Stop',stageIn:'IN',stageHold:'HOLD',stageOut:'OUT',bipLabel:'Choose image',colorLabel:'Color:'},
-  he:{appName:'תודעה מודעת',tagline:'מרחב שבו מחשבות זורמות',signIn:'כניסה',createAccount:'יצירת חשבון',email:'אימייל',emailPlaceholder:'you@example.com',password:'סיסמה',confirmPassword:'אימות סיסמה',signOut:'יציאה',navHome:'בית',navStream:'מחשבות על הזרם',navJournal:'היומן שלי',welcomeBack:'ברוך שובך,',welcomeSub:'זהו מרחב ההתבוננות שלך. בחרו לאן תרצו ללכת.',streamDesc:'הניחו מחשבות על עלים וצפה בעלים זורמים במורד הנחל',journalDesc:'כתבו בחופשיות ובחנו בעדינות את המחשבות עם ארבע שאלות',thoughtPlaceholder:'מחשבה...',placeOnLeaf:'הניחו על עלה',saveThought:'שמרו מחשבה',addImage:'+ תמונה',streamSpeed:'מהירות הזרם',leafCount:'כמות עלים',stpTitle:'מחשבות שמורות',stpHint:'בחרו עד 3 להצגה על עלים',stpEmpty:'אין עדיין מחשבות שמורות — הקלידו מחשבה למטה ושמרו אותה',compassionLabel:'💛 משפטי תזכורת חומלים',journalSubtitle:'כתבו בחופשיות. לאחר מכן בחרו משפטים ובחנו אותם בעדינות.',step1Badge:'שלב 1',writeFreely:'כתבו בחופשיות',journalPlaceholder:'כתבו כל מה שעולה בראש. מבלי לערוך. מבלי לשפוט. פשוט לתת לזה לזרום...',chooseMultiple:'בחר משפט אחד או יותר להרהור:',extractBtn:'חלצו משפטים להרהור ←',step2Badge:'שלב 2',reflectTitle:'התבוננו במחשבות',saveReflection:'שמרו הרהור זה',savedTitle:'הרהורים שמורים',q1:'האם המחשבה הזו אמיתית?',q2:'האם היא באמת אמיתית?',q3:'כיצד אני יודע/ת שהיא באמת אמיתית?',q4:'מי הייתי ללא המחשבה הזו?',q1p:'ענו בכנות...',q2p:'האם אני יכול להיות בטוח/ה לחלוטין?',q3p:'איזו עדות יש לך? כיצד היא גורמת לך להרגיש?',q4p:'דמיינו את עצמכם ללא המחשבה הזו. מה ניתן לראות?',emptyState:'ההרהורים יופיעו כאן לאחר שתשמרו אותם.',fillFields:'אנא מלאו את כל השדות.',validEmail:'אנא הזינו אימייל תקין.',passwordMatch:'הסיסמאות אינן תואמות.',passwordLen:'הסיסמה חייבת להכיל לפחות 6 תווים.',emailExists:'חשבון עם אימייל זה כבר קיים.',noAccount:'לא נמצא חשבון עם אימייל זה.',wrongPw:'סיסמה שגויה.',done:'סיום',languageLabel:'שפה',created:'החשבון נוצר! מכניס אותך...',navBreathing:'נשימה מודעת',breathDesc:'נשמו עם מנדלה עדינה. הגדירו את הקצב המתאים והתמקדו בחווית הנשימה.',inBreath:'שאיפה',pauseBreath:'עצירה',outBreath:'נשיפה',seconds:'שניות',startBreathing:'▶ התחלה',stopBreathing:'■ עצירה',stageIn:'שאיפה',stageHold:'להחזיק',stageOut:'נשיפה',bipLabel:'בחרו תמונה',colorLabel:'צבע:'}
+  en:{appName:'Mindful Stream',tagline:'A space for thoughts to flow',signIn:'Sign In',createAccount:'Create Account',email:'Email',emailPlaceholder:'you@example.com',password:'Password',confirmPassword:'Confirm Password',signOut:'Sign out',navHome:'Home',navStream:'Thoughts on a Stream',navJournal:'My Journal',welcomeBack:'Welcome back,',welcomeSub:"This is your Observing corner. Choose where you'd like to go.",streamDesc:'Place your thoughts on leaves and watch them flow downstream',journalDesc:'Write freely and gently question your thoughts with four reflections',thoughtPlaceholder:'A thought...',placeOnLeaf:'Place on leaf',saveThought:'Save thought',addImage:'+ Image',streamSpeed:'Stream Speed',leafCount:'Leaf Count',stpTitle:'Saved Thoughts',stpHint:'Select up to 3 to float on leaves',stpEmpty:'No saved thoughts yet — type one below and save it',compassionLabel:'💛 Compassion reminders',journalSubtitle:'Write freely. Then choose sentences and let them be gently questioned.',step1Badge:'Step 1',writeFreely:'Write freely',journalPlaceholder:"Write whatever is on your mind. Don't edit. Don't judge. Just let it flow...",chooseMultiple:'Choose one or more sentences to reflect on:',extractBtn:'Extract sentences for reflection →',step2Badge:'Step 2',reflectTitle:'Reflect on your thoughts',saveReflection:'Save this reflection',savedTitle:'Saved Reflections',q1:'Is this thought true?',q2:'Is it really true?',q3:'How do I know that it is really true?',q4:'Who would I be without this thought?',q1p:'Answer honestly...',q2p:'Can you be absolutely certain?',q3p:'What evidence do you have? How does it make you feel?',q4p:'Imagine yourself without this thought. What do you see?',emptyState:'Your reflections will appear here after you save them.',fillFields:'Please fill in all fields.',validEmail:'Please enter a valid email.',passwordMatch:'Passwords do not match.',passwordLen:'Password must be at least 6 characters.',emailExists:'An account with this email already exists.',noAccount:'No account found with this email.',wrongPw:'Incorrect password.',done:'Done',languageLabel:'Language',created:'Account created! Signing you in...',navBreathing:'Mindful Breathing',breathDesc:'Breathe with a gentle mandala. Set your own rhythm and find calm.',inBreath:'In-breath',pauseBreath:'Pause',outBreath:'Out-breath',seconds:'sec',startBreathing:'▶ Start',stopBreathing:'■ Stop',stageIn:'IN',stageHold:'HOLD',stageOut:'OUT',bipLabel:'Choose image',colorLabel:'Color:', fullPage:'Full Page', exitFullPage:'Exit Full Page'},
+  he:{appName:'תודעה מודעת',tagline:'מרחב שבו מחשבות זורמות',signIn:'כניסה',createAccount:'יצירת חשבון',email:'אימייל',emailPlaceholder:'you@example.com',password:'סיסמה',confirmPassword:'אימות סיסמה',signOut:'יציאה',navHome:'בית',navStream:'מחשבות על הזרם',navJournal:'היומן שלי',welcomeBack:'ברוך שובך,',welcomeSub:'זהו מרחב ההתבוננות שלך. בחרו לאן תרצו ללכת.',streamDesc:'הניחו מחשבות על עלים וצפה בעלים זורמים במורד הנחל',journalDesc:'כתבו בחופשיות ובחנו בעדינות את המחשבות עם ארבע שאלות',thoughtPlaceholder:'מחשבה...',placeOnLeaf:'הניחו על עלה',saveThought:'שמרו מחשבה',addImage:'+ תמונה',streamSpeed:'מהירות הזרם',leafCount:'כמות עלים',stpTitle:'מחשבות שמורות',stpHint:'בחרו עד 3 להצגה על עלים',stpEmpty:'אין עדיין מחשבות שמורות — הקלידו מחשבה למטה ושמרו אותה',compassionLabel:'💛 משפטי תזכורת חומלים',journalSubtitle:'כתבו בחופשיות. לאחר מכן בחרו משפטים ובחנו אותם בעדינות.',step1Badge:'שלב 1',writeFreely:'כתבו בחופשיות',journalPlaceholder:'כתבו כל מה שעולה בראש. מבלי לערוך. מבלי לשפוט. פשוט לתת לזה לזרום...',chooseMultiple:'בחר משפט אחד או יותר להרהור:',extractBtn:'חלצו משפטים להרהור ←',step2Badge:'שלב 2',reflectTitle:'התבוננו במחשבות',saveReflection:'שמרו הרהור זה',savedTitle:'הרהורים שמורים',q1:'האם המחשבה הזו אמיתית?',q2:'האם היא באמת אמיתית?',q3:'כיצד אני יודע/ת שהיא באמת אמיתית?',q4:'מי הייתי ללא המחשבה הזו?',q1p:'ענו בכנות...',q2p:'האם אני יכול להיות בטוח/ה לחלוטין?',q3p:'איזו עדות יש לך? כיצד היא גורמת לך להרגיש?',q4p:'דמיינו את עצמכם ללא המחשבה הזו. מה ניתן לראות?',emptyState:'ההרהורים יופיעו כאן לאחר שתשמרו אותם.',fillFields:'אנא מלאו את כל השדות.',validEmail:'אנא הזינו אימייל תקין.',passwordMatch:'הסיסמאות אינן תואמות.',passwordLen:'הסיסמה חייבת להכיל לפחות 6 תווים.',emailExists:'חשבון עם אימייל זה כבר קיים.',noAccount:'לא נמצא חשבון עם אימייל זה.',wrongPw:'סיסמה שגויה.',done:'סיום',languageLabel:'שפה',created:'החשבון נוצר! מכניס אותך...',navBreathing:'נשימה מודעת',breathDesc:'נשמו עם מנדלה עדינה. הגדירו את הקצב המתאים והתמקדו בחווית הנשימה.',inBreath:'שאיפה',pauseBreath:'עצירה',outBreath:'נשיפה',seconds:'שניות',startBreathing:'▶ התחלה',stopBreathing:'■ עצירה',stageIn:'שאיפה',stageHold:'להחזיק',stageOut:'נשיפה',bipLabel:'בחרו תמונה',colorLabel:'צבע:', fullPage:'מסך מלא', exitFullPage: 'יציאה ממסך מלא'}
 };
 let lang = localStorage.getItem('ms_lang') || 'en';
 function tr(k){return(STRINGS[lang]||STRINGS.en)[k]||k;}
@@ -801,6 +970,14 @@ function renderSavedThoughts(){
   const thoughts=getSavedThoughts();
   const selectedCount=thoughts.filter(t=>t.selected).length;
   const anySelected=selectedCount>0||compassionActive;
+  
+  // Update the toggle button badge
+  const badge = document.getElementById('stp-badge');
+  const toggleBtn = document.getElementById('stp-toggle-btn');
+  if (badge && toggleBtn) {
+    badge.textContent = selectedCount;
+    toggleBtn.classList.toggle('has-selection', selectedCount > 0);
+  }
 
   if(!thoughts.length){
     list.innerHTML=`<div class="stp-empty">${tr('stpEmpty')}</div>`;
@@ -832,6 +1009,20 @@ function renderSavedThoughts(){
     inp.disabled=false;inp.style.opacity='';
   }
 }
+
+function toggleStpDropdown(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('stp-dropdown-wrap');
+  wrap.classList.toggle('open');
+}
+
+// Close the dropdown when clicking anywhere outside it
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('stp-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    wrap.classList.remove('open');
+  }
+});
 
 function toggleCompassion(checked){
   compassionActive=checked;
@@ -1447,6 +1638,32 @@ function initBreathingPage(){
   document.getElementById('pause-val').textContent=breathPause;
   document.getElementById('out-val').textContent=breathOut;
 }
+
+function toggleFullPageStream() {
+  const page    = document.getElementById('stream-page');
+  const nav     = document.getElementById('app-nav');
+  const btn     = document.getElementById('btn-fullpage');
+  const isFullpage = page.classList.toggle('fullpage-mode');
+
+  nav.style.display = isFullpage ? 'none' : '';
+  btn.textContent   = isFullpage ? '✕ ' + tr('exitFullPage') : '⛶ ' + tr('fullPage');
+  
+  document.getElementById('stp-dropdown-wrap').classList.remove('open');
+  
+  requestAnimationFrame(() => {
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+  });
+}
+
+// Exit full-page mode on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const page = document.getElementById('stream-page');
+    if (page && page.classList.contains('fullpage-mode')) {
+      toggleFullPageStream();
+    }
+  }
+});
 
 initBreathingPage();
 </script>
