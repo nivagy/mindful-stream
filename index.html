@@ -13,6 +13,8 @@ body{font-family:'Nunito',sans-serif;background:#1a3a2a;color:var(--text-dark);m
 /* AUTH */
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#1a3a2a,#2a5a40 50%,#1e4a6a)}
 .auth-card{background:rgba(255,255,255,.97);border-radius:20px;padding:44px 40px;width:370px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.lang-toggle{display:flex; justify-content:center; margin-bottom:14px;}
+.lang-toggle select{padding:6px 12px; border-radius:10px; border:1.5px solid #dce8dc; font-size:13px; background:#f9fbf9; color:#2c3e2e; cursor:pointer;}
 .auth-logo{text-align:center;margin-bottom:28px}
 .auth-logo .logo-leaf{font-size:38px;display:block;margin-bottom:6px}
 .auth-logo h1{font-family:'Lora',serif;font-size:24px;color:var(--text-dark);font-weight:600}
@@ -350,17 +352,23 @@ html[dir=rtl] #journal-text,html[dir=rtl] .thought-text{direction:rtl;text-align
       <div class="auth-tab active" onclick="switchTab('login')" data-i18n="signIn">Sign In</div>
       <div class="auth-tab" onclick="switchTab('signup')" data-i18n="createAccount">Create Account</div>
     </div>
+	<div class="lang-toggle">
+	  <select class="lang-select" id="auth-lang-select" onchange="setLang(this.value)" style="min-width:90px">
+		<option value="en" id="opt-en">English</option>
+		<option value="he" id="opt-he">עברית</option>
+	  </select>
+	</div>
     <div class="field-group">
       <label data-i18n="email">Email</label>
       <input type="email" id="auth-email" placeholder="you@example.com" data-i18n-placeholder="emailPlaceholder"/>
     </div>
     <div class="field-group">
       <label data-i18n="password">Password</label>
-      <input type="password" id="auth-password" placeholder="••••••••"/>
+      <input type="password" id="auth-password" data-i18n-placeholder="password"/>
     </div>
     <div id="confirm-wrap" class="field-group" style="display:none">
       <label data-i18n="confirmPassword">Confirm Password</label>
-      <input type="password" id="auth-confirm" placeholder="••••••••"/>
+      <input type="password" id="auth-confirm" data-i18n-placeholder="password"/>
     </div>
     <button class="btn-primary" onclick="handleAuth()" data-i18n="signIn">Sign In</button>
     <div id="auth-msg" class="auth-msg"></div>
@@ -565,15 +573,35 @@ const STRINGS={
   en:{appName:'Mindful Stream',tagline:'A space for thoughts to flow',signIn:'Sign In',createAccount:'Create Account',email:'Email',emailPlaceholder:'you@example.com',password:'Password',confirmPassword:'Confirm Password',signOut:'Sign out',navHome:'Home',navStream:'Thoughts on a Stream',navJournal:'My Journal',welcomeBack:'Welcome back,',welcomeSub:"This is your Observing corner. Choose where you'd like to go.",streamDesc:'Place your thoughts on leaves and watch them flow downstream',journalDesc:'Write freely and gently question your thoughts with four reflections',thoughtPlaceholder:'A thought...',placeOnLeaf:'Place on leaf',saveThought:'Save thought',addImage:'+ Image',streamSpeed:'Stream Speed',leafCount:'Leaf Count',stpTitle:'Saved Thoughts',stpHint:'Select up to 3 to float on leaves',stpEmpty:'No saved thoughts yet — type one below and save it',compassionLabel:'💛 Compassion reminders',journalSubtitle:'Write freely. Then choose sentences and let them be gently questioned.',step1Badge:'Step 1',writeFreely:'Write freely',journalPlaceholder:"Write whatever is on your mind. Don't edit. Don't judge. Just let it flow...",chooseMultiple:'Choose one or more sentences to reflect on:',extractBtn:'Extract sentences for reflection →',step2Badge:'Step 2',reflectTitle:'Reflect on your thoughts',saveReflection:'Save this reflection',savedTitle:'Saved Reflections',q1:'Is this thought true?',q2:'Is it really true?',q3:'How do I know that it is really true?',q4:'Who would I be without this thought?',q1p:'Answer honestly...',q2p:'Can you be absolutely certain?',q3p:'What evidence do you have? How does it make you feel?',q4p:'Imagine yourself without this thought. What do you see?',emptyState:'Your reflections will appear here after you save them.',fillFields:'Please fill in all fields.',validEmail:'Please enter a valid email.',passwordMatch:'Passwords do not match.',passwordLen:'Password must be at least 6 characters.',emailExists:'An account with this email already exists.',noAccount:'No account found with this email.',wrongPw:'Incorrect password.',done:'Done',languageLabel:'Language',created:'Account created! Signing you in...',navBreathing:'Mindful Breathing',breathDesc:'Breathe with a gentle mandala. Set your own rhythm and find calm.',inBreath:'In-breath',pauseBreath:'Pause',outBreath:'Out-breath',seconds:'sec',startBreathing:'▶ Start',stopBreathing:'■ Stop',stageIn:'IN',stageHold:'HOLD',stageOut:'OUT',bipLabel:'Choose image',colorLabel:'Color:'},
   he:{appName:'תודעה מודעת',tagline:'מרחב שבו מחשבות זורמות',signIn:'כניסה',createAccount:'יצירת חשבון',email:'אימייל',emailPlaceholder:'you@example.com',password:'סיסמה',confirmPassword:'אימות סיסמה',signOut:'יציאה',navHome:'בית',navStream:'מחשבות על הזרם',navJournal:'היומן שלי',welcomeBack:'ברוך שובך,',welcomeSub:'זהו מרחב ההתבוננות שלך. בחרו לאן תרצו ללכת.',streamDesc:'הניחו מחשבות על עלים וצפה בעלים זורמים במורד הנחל',journalDesc:'כתבו בחופשיות ובחנו בעדינות את המחשבות עם ארבע שאלות',thoughtPlaceholder:'מחשבה...',placeOnLeaf:'הניחו על עלה',saveThought:'שמרו מחשבה',addImage:'+ תמונה',streamSpeed:'מהירות הזרם',leafCount:'כמות עלים',stpTitle:'מחשבות שמורות',stpHint:'בחרו עד 3 להצגה על עלים',stpEmpty:'אין עדיין מחשבות שמורות — הקלידו מחשבה למטה ושמרו אותה',compassionLabel:'💛 משפטי תזכורת חומלים',journalSubtitle:'כתבו בחופשיות. לאחר מכן בחרו משפטים ובחנו אותם בעדינות.',step1Badge:'שלב 1',writeFreely:'כתבו בחופשיות',journalPlaceholder:'כתבו כל מה שעולה בראש. מבלי לערוך. מבלי לשפוט. פשוט לתת לזה לזרום...',chooseMultiple:'בחר משפט אחד או יותר להרהור:',extractBtn:'חלצו משפטים להרהור ←',step2Badge:'שלב 2',reflectTitle:'התבוננו במחשבות',saveReflection:'שמרו הרהור זה',savedTitle:'הרהורים שמורים',q1:'האם המחשבה הזו אמיתית?',q2:'האם היא באמת אמיתית?',q3:'כיצד אני יודע/ת שהיא באמת אמיתית?',q4:'מי הייתי ללא המחשבה הזו?',q1p:'ענו בכנות...',q2p:'האם אני יכול להיות בטוח/ה לחלוטין?',q3p:'איזו עדות יש לך? כיצד היא גורמת לך להרגיש?',q4p:'דמיינו את עצמכם ללא המחשבה הזו. מה ניתן לראות?',emptyState:'ההרהורים יופיעו כאן לאחר שתשמרו אותם.',fillFields:'אנא מלאו את כל השדות.',validEmail:'אנא הזינו אימייל תקין.',passwordMatch:'הסיסמאות אינן תואמות.',passwordLen:'הסיסמה חייבת להכיל לפחות 6 תווים.',emailExists:'חשבון עם אימייל זה כבר קיים.',noAccount:'לא נמצא חשבון עם אימייל זה.',wrongPw:'סיסמה שגויה.',done:'סיום',languageLabel:'שפה',created:'החשבון נוצר! מכניס אותך...',navBreathing:'נשימה מודעת',breathDesc:'נשמו עם מנדלה עדינה. הגדירו את הקצב המתאים והתמקדו בחווית הנשימה.',inBreath:'שאיפה',pauseBreath:'עצירה',outBreath:'נשיפה',seconds:'שניות',startBreathing:'▶ התחלה',stopBreathing:'■ עצירה',stageIn:'שאיפה',stageHold:'להחזיק',stageOut:'נשיפה',bipLabel:'בחרו תמונה',colorLabel:'צבע:'}
 };
-let lang='en';
+let lang = localStorage.getItem('ms_lang') || 'en';
 function tr(k){return(STRINGS[lang]||STRINGS.en)[k]||k;}
 function setLang(l){
-  lang=l;
+  lang = l;
+  // ✅ Update language selector labels manually
+  const optEn = document.getElementById('opt-en');
+  const optHe = document.getElementById('opt-he');
+
+  if(optEn && optHe){
+    if(l === 'he'){
+	  optEn.textContent = 'אנגלית';
+	  optHe.textContent = 'עברית';
+    } else {
+	  optEn.textContent = 'English';
+	  optHe.textContent = 'Hebrew';
+    }
+  }
+
+  
+
+  // ✅ SAVE selection
+  localStorage.setItem('ms_lang', l);
+
   const h=document.documentElement;
   h.setAttribute('lang',l);
   h.setAttribute('dir',l==='he'?'rtl':'ltr');
-  // Keep both selectors in sync (only one exists now but keep safe)
+
   document.querySelectorAll('.lang-select').forEach(s=>s.value=l);
+
   applyTranslations();
 }
 function applyTranslations(){
@@ -649,6 +677,7 @@ async function handleAuth(){
 function loginUser(email){
   currentUser=email;
   if(!users[email].savedThoughts)users[email].savedThoughts=[];
+  clearStreamSelections();
   journalEntries=users[email].entries||[];
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
@@ -656,7 +685,8 @@ function loginUser(email){
   document.getElementById('welcome-name').textContent=email.split('@')[0];
   showPage('welcome');startRiverLoop();renderSavedEntries();renderSavedThoughts();applyTranslations();
 }
-function logout(){currentUser=null;document.getElementById('app-screen').style.display='none';document.getElementById('auth-screen').style.display='flex';document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';hideAuthMsg();}
+function logout(){clearStreamSelections(); currentUser=null;document.getElementById('app-screen').style.display='none';document.getElementById('auth-screen').style.display='flex';document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';hideAuthMsg();}
+
 
 // ===== NAVIGATION =====
 function showPage(name){
@@ -672,6 +702,10 @@ function showPage(name){
   });
   if(name==='stream'){requestAnimationFrame(()=>requestAnimationFrame(()=>sizeAndDrawRiver()));}
   if(name!=='breathing'&&breathingActive){stopBreathing();}
+  if(name!=='stream'){
+    clearStreamSelections();
+    renderSavedThoughts();
+  }
 }
 
 function toggleNavDropdown(e){
@@ -695,6 +729,17 @@ document.addEventListener('click',function(){
 // compassionActive: boolean
 
 let compassionActive=false;
+
+function clearStreamSelections(){
+  compassionActive = false;
+  const cb = document.getElementById('compassion-cb');
+  if(cb) cb.checked = false;   // ← add this line
+  if(currentUser && users[currentUser] && users[currentUser].savedThoughts){
+    users[currentUser].savedThoughts.forEach(t => t.selected = false);
+    localStorage.setItem('ms_users', JSON.stringify(users));
+  }
+  updateStreamMode();
+}
 
 const COMPASSION={
   en:['Compassion for ME','Compassion for Others','Compassion for MWE'],
@@ -1282,6 +1327,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  setLang(lang); // this sets all .lang-select values AND calls applyTranslations()
+  // Explicitly sync the auth page select in case it wasn't in the querySelectorAll sweep
+  const authSel = document.getElementById('auth-lang-select');
+  if (authSel) authSel.value = lang;
+});
+
 let currentBreathScale=0.5;
 
 function ensureBreathElement(){
@@ -1396,7 +1448,6 @@ function initBreathingPage(){
   document.getElementById('out-val').textContent=breathOut;
 }
 
-applyTranslations();
 initBreathingPage();
 </script>
 </body>
